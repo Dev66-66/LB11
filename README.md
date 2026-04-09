@@ -3,6 +3,8 @@
 **Группа:** 221131
 **Вариант:** 1
 
+[![CI/CD](https://github.com/Dev66-66/LB11/actions/workflows/ci.yml/badge.svg)](https://github.com/Dev66-66/LB11/actions/workflows/ci.yml)
+
 ---
 
 ## М1 — Dockerfile для Python-приложения
@@ -230,4 +232,50 @@ curl http://localhost:8080/metrics
 # Rust — результат в логах контейнера
 docker compose logs rust-textutil
 # {"command":"count","input":"Hello from docker-compose","words":3,"chars":25,"lines":1}
+```
+
+---
+
+## Н3 — CI/CD
+
+### Описание пайплайна
+
+GitHub Actions запускается при push/PR в ветки `main` и `master`.
+
+```
+test-python ──┐
+test-go     ──┤──► build-and-push  (только при push)
+test-rust   ──┤
+test-compose──┘
+```
+
+Все четыре тестовых job выполняются параллельно. `build-and-push` стартует только
+после успеха всех тестов и только при `push` (не на PR).
+
+| Job            | Что делает                                              |
+|----------------|---------------------------------------------------------|
+| test-python    | `pip install` + `pytest python/tests/ -v`              |
+| test-go        | `go test ./... -v` в папке `go/`                       |
+| test-rust      | `cargo test -v` в папке `rust/` (с кешем cargo)        |
+| test-compose   | `pytest tests/ -v` — проверка структуры compose-файла  |
+| build-and-push | `docker buildx` + push трёх образов на Docker Hub      |
+
+### Настройка секретов
+
+Перейди в репозиторий → **Settings → Secrets and variables → Actions → New repository secret**
+и добавь два секрета:
+
+| Secret               | Значение                                    |
+|----------------------|---------------------------------------------|
+| `DOCKERHUB_USERNAME` | твой логин на Docker Hub                    |
+| `DOCKERHUB_TOKEN`    | Access Token (hub.docker.com → Account Settings → Personal access tokens) |
+
+### Публикуемые образы
+
+После успешного прохождения всех тестов пушатся три образа:
+
+```
+<DOCKERHUB_USERNAME>/lab11-python-app:latest
+<DOCKERHUB_USERNAME>/lab11-go-info:latest
+<DOCKERHUB_USERNAME>/lab11-rust-textutil:latest
 ```
