@@ -1,0 +1,40 @@
+services:
+  python-app:
+    build: ./python
+    ports:
+      - "5005:5005"
+    networks:
+      - lab11-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5005/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  go-info:
+    build: ./go
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+    networks:
+      - lab11-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rust-textutil:
+    build: ./rust
+    networks:
+      - lab11-net
+    restart: "no"
+    command: ["count", "Hello from docker-compose"]
+
+networks:
+  lab11-net:
+    driver: bridge
