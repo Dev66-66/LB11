@@ -1,5 +1,5 @@
 # Stage 1: builder — compile the binary
-FROM rust:1.75 AS builder
+FROM rust:1.80-slim AS builder
 
 WORKDIR /app
 
