@@ -109,3 +109,57 @@ $ docker run --rm lb11-rust upper "hello world"
 $ docker run --rm lb11-rust lower "HELLO WORLD"
 {"command":"lower","input":"HELLO WORLD","result":"hello world"}
 ```
+
+---
+
+## Н1 — Go-сервис в scratch-образе
+
+### Описание
+
+HTTP-сервис информации о системе на чистом Go (только stdlib, без зависимостей).
+Компилируется статически (`CGO_ENABLED=0`) и упаковывается в `scratch` — итоговый образ
+содержит только бинарник (~7 МБ).
+
+### Таблица эндпоинтов
+
+| Метод | URL       | Описание                                       |
+|-------|-----------|------------------------------------------------|
+| GET   | /         | Сводка сервиса: имя, версия, список маршрутов  |
+| GET   | /health   | Статус `ok` + текущее время (RFC3339)          |
+| GET   | /info     | hostname, go_version, os, arch, num_cpu        |
+| GET   | /metrics  | uptime_seconds, goroutines, alloc_mb, sys_mb   |
+
+При неверном методе → `405 Method Not Allowed` (JSON).
+При несуществующем пути → `404 Not Found` (JSON).
+
+### Сборка и запуск
+
+```bash
+# Сборка образа (внутри также запускаются тесты)
+docker build -t go-info ./go
+
+# Запуск на порту 8080
+docker run -d -p 8080:8080 --name go-info go-info
+
+# Запуск на другом порту через переменную окружения
+docker run -d -p 9090:9090 -e PORT=9090 --name go-info go-info
+
+# Размер образа
+docker images go-info
+```
+
+### Примеры curl
+
+```bash
+curl http://localhost:8080/
+# {"routes":["/","/health","/info","/metrics"],"service":"go-info","version":"1.0.0"}
+
+curl http://localhost:8080/health
+# {"status":"ok","timestamp":"2026-04-09T12:00:00Z"}
+
+curl http://localhost:8080/info
+# {"arch":"amd64","go_version":"go1.22.0","hostname":"...","num_cpu":8,"os":"linux"}
+
+curl http://localhost:8080/metrics
+# {"alloc_mb":0.42,"goroutines":4,"sys_mb":7.21,"uptime_seconds":3.14}
+```
