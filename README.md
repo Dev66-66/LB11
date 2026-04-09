@@ -59,3 +59,53 @@ curl -X PUT http://localhost:5005/items/api/items/1 \
 # Удалить предмет
 curl -X DELETE http://localhost:5005/items/api/items/1
 ```
+
+---
+
+## М3 — Dockerfile для Rust-приложения
+
+### Описание утилиты
+
+CLI-инструмент `textutil` для работы с текстом. Принимает команду и аргумент,
+возвращает результат в формате JSON. Реализован на чистом Rust без внешних зависимостей.
+
+Команды:
+- `count <текст>` — подсчёт слов, символов и строк
+- `reverse <текст>` — обратный порядок символов
+- `upper <текст>` — преобразование в верхний регистр
+- `lower <текст>` — преобразование в нижний регистр
+
+### Сборка и запуск
+
+```bash
+# Сборка образа
+docker build -t lb11-rust ./rust
+
+# Подсчёт слов/символов/строк
+docker run --rm lb11-rust count "hello world"
+
+# Переворот строки
+docker run --rm lb11-rust reverse "hello"
+
+# Верхний регистр
+docker run --rm lb11-rust upper "hello world"
+
+# Нижний регистр
+docker run --rm lb11-rust lower "HELLO WORLD"
+```
+
+### Примеры вывода
+
+```bash
+$ docker run --rm lb11-rust count "hello world"
+{"command":"count","input":"hello world","words":2,"chars":11,"lines":1}
+
+$ docker run --rm lb11-rust reverse "hello"
+{"command":"reverse","input":"hello","result":"olleh"}
+
+$ docker run --rm lb11-rust upper "hello world"
+{"command":"upper","input":"hello world","result":"HELLO WORLD"}
+
+$ docker run --rm lb11-rust lower "HELLO WORLD"
+{"command":"lower","input":"HELLO WORLD","result":"hello world"}
+```

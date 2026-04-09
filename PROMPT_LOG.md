@@ -30,3 +30,25 @@ Flask-приложение со слоёной архитектурой (routes/
 - Написано 27 тестов: CRUD, 404, структура JSON, HTTP статус-коды, граничные случаи
 - Двухстадийный Dockerfile: builder на `python:3.12`, финальный образ на `python:3.12-slim`
 - Все тесты проходят (`pytest python/tests/ -v`)
+
+---
+
+## М3
+
+### Промпт
+
+Задание М3: Dockerfile для Rust-приложения.
+
+Создай CLI-утилиту `textutil` на Rust (только std, без внешних зависимостей).
+Команды: count, reverse, upper, lower — результат в JSON.
+Двухстадийный Dockerfile: builder на `rust:1.75`, финальный на `debian:bookworm-slim`.
+Не менее 20 unit-тестов через `#[cfg(test)]`.
+
+### Результат
+
+Создана структура `rust/`:
+- `rust/src/main.rs` — CLI-утилита с командами count/reverse/upper/lower, вывод JSON, обработка ошибок (exit code 1 + JSON с "error")
+- `rust/Cargo.toml` — пакет textutil, edition 2021, без зависимостей
+- `rust/Dockerfile` — двухстадийная сборка с кэшированием зависимостей через заглушку
+- `rust/.dockerignore`
+- 27 unit-тестов: count (слова/символы/строки/пустая строка), reverse (обычная/палиндром/один символ/пустая), upper/lower (смешанный регистр), граничные случаи (нет аргументов, неизвестная команда, команда без текста)
