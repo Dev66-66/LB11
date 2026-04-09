@@ -7,3 +7,5 @@ __pycache__/
 instance/
 target/
 *.db-journal
+.pytest_cache/
+.idea/
