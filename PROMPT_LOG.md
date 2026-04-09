@@ -74,3 +74,21 @@ HTTP-сервис информации о системе: GET /, /health, /info,
 - `go/Dockerfile` — двухстадийная сборка: golang:1.22 (тесты + CGO_ENABLED=0 static build) → scratch
 - `go/.dockerignore`
 - Все 53 теста прошли (`go test ./... -v`)
+
+---
+
+## М5
+
+### Промпт
+
+Задание М5: docker-compose.yml для трёх сервисов (Python, Go, Rust).
+python-app :5005, go-info :8080, rust-textutil (одноразовый). Сеть lab11-net bridge.
+Healthcheck у python-app и go-info. Не менее 15 pytest-тестов структуры через PyYAML.
+
+### Результат
+
+Созданы файлы:
+- `docker-compose.yml` — три сервиса в сети lab11-net, healthcheck у python-app и go-info, restart: unless-stopped / "no", environment PORT=8080 у go-info
+- `tests/test_compose.py` — 26 тестов: наличие сервисов, сеть, порты, healthcheck, restart policy, build contexts, environment, command
+- `tests/requirements.txt` — pytest + PyYAML
+- Все 26 тестов прошли (`pytest tests/ -v`)

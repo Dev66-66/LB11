@@ -163,3 +163,71 @@ curl http://localhost:8080/info
 curl http://localhost:8080/metrics
 # {"alloc_mb":0.42,"goroutines":4,"sys_mb":7.21,"uptime_seconds":3.14}
 ```
+
+---
+
+## М5 — Docker Compose
+
+### Архитектура
+
+Все три сервиса запускаются в одной сети `lab11-net` (bridge):
+
+```
+┌─────────────────────────────────────────────┐
+│              lab11-net (bridge)             │
+│                                             │
+│  ┌─────────────┐   ┌──────────┐            │
+│  │ python-app  │   │ go-info  │            │
+│  │  :5005      │   │  :8080   │            │
+│  │ healthcheck │   │ healthcheck│           │
+│  └─────────────┘   └──────────┘            │
+│                                             │
+│  ┌───────────────────────────┐             │
+│  │      rust-textutil        │             │
+│  │  (одноразовый контейнер)  │             │
+│  └───────────────────────────┘             │
+└─────────────────────────────────────────────┘
+```
+
+| Сервис          | Образ         | Порт  | Restart         |
+|-----------------|---------------|-------|-----------------|
+| python-app      | ./python      | 5005  | unless-stopped  |
+| go-info         | ./go          | 8080  | unless-stopped  |
+| rust-textutil   | ./rust        | —     | no              |
+
+### Команды
+
+```bash
+# Сборка и запуск всех сервисов
+docker compose up --build
+
+# В фоне
+docker compose up --build -d
+
+# Статус контейнеров
+docker compose ps
+
+# Логи конкретного сервиса
+docker compose logs python-app
+docker compose logs go-info
+
+# Остановка и удаление контейнеров
+docker compose down
+```
+
+### Проверка работы сервисов
+
+```bash
+# Python — Flask CRUD API
+curl http://localhost:5005/health
+curl http://localhost:5005/items/api/items
+
+# Go — информация о системе
+curl http://localhost:8080/health
+curl http://localhost:8080/info
+curl http://localhost:8080/metrics
+
+# Rust — результат в логах контейнера
+docker compose logs rust-textutil
+# {"command":"count","input":"Hello from docker-compose","words":3,"chars":25,"lines":1}
+```
